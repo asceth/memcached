@@ -111,11 +111,14 @@ replace({socket, Socket}, Key, Flags, Expire, Bytes) ->
   process_set(Socket, replace, Key, Flags, Expire, Bytes).
 
 
-%%--------------------------------------------------------------------
-%% Function: get(Key|Keys) -> {reply, [Bytes]} | {error, Reason}
-%% Description: Return Bytes associated with Key
-%% This could be a list like [foo, bar] or ["foo", "bar"]
-%%--------------------------------------------------------------------
+%%====================================================================
+%% @doc Return value associated with Key.  Will automatically convert
+%%       back to erlang terms.  Key can be a single key or a list of
+%%       keys.
+%% @spec get(memcached_connection(), Key::memcached_key() | [Key::memcached_key()]) ->
+%%         [any()]
+-spec(get/2::(memcached_connection(), memcached_key() | [memcached_key()]) ->
+         [any()]).
 get({host, Host, port, Port}, [Head|Tail]) when is_list(Head) ->
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, false}]),
   Reply = process_get(Socket, [Head] ++ Tail),
@@ -144,6 +147,11 @@ delete({host, Host, port, Port}, Key) ->
 delete({socket, Socket}, Key) ->
   delete({socket, Socket}, Key, 0).
 
+%% @doc Delete a key from memcached after Time seconds
+%% @spec delete(memcached_connection(), Key::memcached_key(), Time::integer()) ->
+%%         ok | {error, not_found}
+-spec(delete/3::(memcached_connection(), memcached_key(), integer()) ->
+         ok | {error, not_found}).
 delete({host, Host, port, Port}, Key, Time) ->
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, false}]),
   Reply = process_delete(Socket, Key, Time),
@@ -153,6 +161,12 @@ delete({socket, Socket}, Key, Time) ->
   process_delete(Socket, Key, Time).
 
 
+%%====================================================================
+%% @doc Delete a key from memcached
+%% @spec stats(memcached_connection()) ->
+%%         [string()]
+-spec(stats/1::(memcached_connection()) ->
+         [string()]).
 stats({host, Host, port, Port}) ->
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, false}]),
   Reply = process_stats(Socket),
