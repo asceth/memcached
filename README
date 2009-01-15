@@ -1,0 +1,61 @@
+Erlang memcached client.
+
+
+This library is built to be used by the sinan (erlware) build system or other
+OTP type releases.  It is a stand-alone OTP application but does not
+create/start any gen_servers.  Instead it is to be used as a straight-forward
+library.
+
+If you wish to use this library with a gen_server (to keep your memcached
+connection) then you can still use this api, you will just need to pass the
+socket to the api instead of the host/port connection details.
+
+
+See docs for full api.  Library includes type and spec attributes for dialyzer.
+
+
+
+Usage:
+
+* Store your connection details or pass them straight into the api
+1> Connection = {host, "localhost", port, 11211}.
+
+
+* Set a key/value pair
+2> memcached:set(Connection, "key", {ok, "GitHub"}).
+ok.
+
+
+* Retrieve the key/value pair
+3> memcached:get(Connection, "key").
+{ok, "GitHub"}
+
+
+* Set a key/value pair with flags and timeout of 10 seconds
+4> memcached:set(Connection, "github", 0, 10, {url, "http://github.com", author, "asceth", repo, "memcached"}).
+ok.
+
+
+* Retrieve multiple keys
+** Results are returned in the order you ask for them, keys that don't exist
+** are simply ignored in the returned reply.
+5> memcached:get(Connection, ["key", "github"]).
+[{ok, "GitHub"}, {url, "http://github.com", author, "asceth", repo, "memcached"}].
+
+
+
+* Stats
+6> memcached:stats(Connection).
+["STAT pid 88559","STAT uptime 177504",
+ "STAT time 1232053310","STAT version 1.2.6",
+ "STAT pointer_size 32","STAT rusage_user 1.092476",
+ "STAT rusage_system 2.120474","STAT curr_items 5",
+ "STAT total_items 10","STAT bytes 472",
+ "STAT curr_connections 6","STAT total_connections 27",
+ "STAT connection_structures 7","STAT cmd_get 30",
+ "STAT cmd_set 10","STAT get_hits 22","STAT get_misses 8",
+ "STAT evictions 0","STAT bytes_read 699",
+ "STAT bytes_written 2417","STAT limit_maxbytes 67108864",
+ "STAT threads 4","END"]
+
+
