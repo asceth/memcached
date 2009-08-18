@@ -229,10 +229,11 @@ process_get(Socket, Keys) ->
   parse_responses(Socket, Data, []).
 
 %% Send set and handle the response
-process_set(Socket, Operation, Key, Flags, Expire, Data) ->
+process_set(Socket, Operation, Key, Flags, Expire, Data) when not(is_binary(Data)) ->
+    process_set(Socket, Operation, Key, Flags, Expire, term_to_binary(Data));
+process_set(Socket, Operation, Key, Flags, Expire, Bytes) ->
   Op = atom_to_list(Operation),
   K = to_list(Key),
-  Bytes = term_to_binary(Data),
   Len = size(Bytes),
   L = list_to_binary( io_lib:format("~s ~s ~p ~p ~p",
                                     [Op, K, Flags, Expire, Len])),
