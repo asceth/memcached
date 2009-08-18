@@ -215,11 +215,18 @@ parse_responses(Socket, <<"VALUE ", Data/binary>>, Acc) ->
     length(More) < (Len + 7) ->
       %% If we didnt' read all the data, fetch the rest
       {Bytes, Rest} = fetch_more(Socket, Len, list_to_binary(More)),
-      parse_responses(Socket, Rest, Acc ++ [binary_to_term(Bytes)]);
+      parse_responses(Socket, Rest, Acc ++ [b2t(Bytes)]);
     true ->
       <<Bytes:Len/binary, Rest/binary>> = list_to_binary(More),
-      parse_responses(Socket, Rest, Acc ++ [binary_to_term(Bytes)])
+      parse_responses(Socket, Rest, Acc ++ [b2t(Bytes)])
   end.
+
+b2t(Binary) ->
+    try binary_to_term(Binary)
+    catch
+	_:_ -> Binary
+    end.
+
 
 %% Send get and handle the response
 process_get(Socket, Keys) ->
