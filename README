@@ -28,7 +28,7 @@ ok.
 
 * Retrieve the key/value pair
 3> memcached:get(Connection, "key").
-{ok, "GitHub"}
+[{ok, "GitHub"}]
 
 
 * Set a key/value pair with flags and timeout of 10 seconds
