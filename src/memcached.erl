@@ -203,23 +203,26 @@ fetch_more(Socket, Len, More) ->
   end.
 
 
-%% Parse the get response
-parse_responses(_Socket, <<"END\r\n", _Rest/binary>>, Acc) ->
-  Acc;
 parse_responses(Socket, <<"\r\n", Data/binary>>, Acc) ->
   parse_responses(Socket, Data, Acc);
 parse_responses(Socket, <<"VALUE ", Data/binary>>, Acc) ->
-  {ok, [_, _, Len], More} = io_lib:fread("~s ~u ~u\r\n", binary_to_list(Data)),
+  {ok, [MemcacheKey, _, Len], More} = io_lib:fread("~s ~u ~u\r\n", binary_to_list(Data)),
   if
     %% 5 is size(<<"\r\nEND\r\n">>)
     length(More) < (Len + 7) ->
       %% If we didnt' read all the data, fetch the rest
       {Bytes, Rest} = fetch_more(Socket, Len, list_to_binary(More)),
-      parse_responses(Socket, Rest, Acc ++ [b2t(Bytes)]);
+      parse_responses(Socket, Rest, Acc ++ [{MemcacheKey, b2t(Bytes)}]);
     true ->
-      <<Bytes:Len/binary, Rest/binary>> = list_to_binary(More),
-      parse_responses(Socket, Rest, Acc ++ [b2t(Bytes)])
-  end.
+	  <<Bytes:Len/binary, Rest/binary>> = list_to_binary(More),
+	  parse_responses(Socket, Rest, Acc ++ [{MemcacheKey, b2t(Bytes)}])
+  end;
+%% Parse the get response
+parse_responses(_Socket, <<"END\r\n", _Rest/binary>>, Acc) ->
+    {ok,Acc};
+parse_responses(_Socket, _Unrecognized, _Acc) ->
+    mismatch_error.
+
 
 b2t(Binary) ->
     try binary_to_term(Binary)
